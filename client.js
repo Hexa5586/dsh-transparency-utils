@@ -35,9 +35,11 @@ window.__ModuleLoader__.load({
     ]
     // Only variables are restored here, never `background-color`: a translucent
     // scrim keeps its own paint, and the panel becomes opaque through the theme
-    // tokens it already reads.
+    // tokens it already reads. Stat popovers use role=dialog but are not modal
+    // scrims; leave the turn-usage panel on the translucent surface path so its
+    // ordinary backdrop-filter can blur the wallpaper behind it.
     const DIALOG_SCOPE = [
-      '[role="dialog"]',
+      '[role="dialog"]:not(:has([data-turn-usage-details]))',
       '[role="alertdialog"]',
       '[aria-modal="true"]',
       'dialog',
@@ -364,7 +366,16 @@ window.__ModuleLoader__.load({
               ...SURFACE_TOKENS.map((token, index) =>
                 `${token}:${originals[index] === '' ? 'Canvas' : originals[index]}!important;`),
             ].join('')
-            dialogs.textContent = `${DIALOG_SCOPE}{${restored}}`
+            // The turn-usage popover is a non-modal role=dialog. Give it a
+            // dedicated glass surface: keep the theme's Canvas hue, but leave
+            // enough alpha for the backdrop blur to be visible. This also
+            // restores a surface if the translucent token path resolves empty.
+            const statGlass = '[role="dialog"]:has([data-turn-usage-details]){' +
+              'background-color:color-mix(in srgb,Canvas 80%,transparent)!important;' +
+              '-webkit-backdrop-filter:blur(28px) saturate(150%)!important;' +
+              'backdrop-filter:blur(28px) saturate(150%)!important;' +
+              '}'
+            dialogs.textContent = `${DIALOG_SCOPE}{${restored}}${statGlass}`
           }
 
           const schedule = () => {

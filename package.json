@@ -1,6 +1,6 @@
 {
   "name": "dsh-background-utils",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "private": true,
   "description": "DeepSeek Harness background utilities: full-window wallpaper, translucent and blurred surfaces, and a composer wallpaper veil.",
   "license": "MIT",

@@ -47,6 +47,18 @@ const CONFIG_FIELDS = [
 const SCALE_FIELDS = new Set(['opacity', 'surfaceOpacity', 'trajectoryOpacity'])
 const BLUR_FIELDS = new Set(['surfaceBlur', 'backgroundBlur', 'trajectoryBlur'])
 
+/**
+ * The floating card of a hover preview (for example the file-diff card a
+ * changed file opens). The shared hover-card primitive names its classes
+ * `_portal_<hash>_<line>`, `_card_…`, and `_preview_…`, so the selectors match
+ * the naming pattern rather than one build's hash; the data attribute is the
+ * stable hook the file-diff preview itself carries.
+ */
+const HOVER_PREVIEW_CARD = [
+  '[class*="_portal_"]>[class*="_preview_"]',
+  ':has(> [data-changes-hover-preview])',
+].join(',')
+
 /** Wait for the HTTP carrier before registering the routes. */
 export const inject = ['webServer']
 
@@ -160,6 +172,12 @@ function buildSurfaceStylesheet(opacity) {
     // settings have to reach that layer rather than the menu box.
     `body{--dsw-menu-surface-fill:${menuColor}!important}`,
     `[data-menu-material]>[aria-hidden="true"]:first-child{background-color:${menuColor}!important}`,
+    // Hover previews (the file-diff card that a changed file opens) are
+    // portaled to `body` and paint `--dsw-alias-bg-layer-1`, which this sheet
+    // keeps translucent. They are floating panels read over the transcript, so
+    // they take the menu's denser fill; without it the text behind the diff
+    // stays readable through the card.
+    `${HOVER_PREVIEW_CARD}{background-color:${menuColor}!important}`,
   ].join('')
 }
 
@@ -194,6 +212,10 @@ function buildSurfaceBlurStylesheet(radius) {
     // stacking context, so a backdrop-filter on that layer has nothing behind it
     // to blur. Blur the surface element instead: its backdrop is the page.
     `[data-menu-material]{-webkit-backdrop-filter:${blur}!important;backdrop-filter:${blur}!important}`,
+    // A hover preview is portaled onto the page itself, so its backdrop is the
+    // transcript it covers: the frosted fill only reads as glass once the text
+    // behind it is blurred.
+    `${HOVER_PREVIEW_CARD}{-webkit-backdrop-filter:${blur}!important;backdrop-filter:${blur}!important}`,
   ].join('')
 }
 

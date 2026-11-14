@@ -142,6 +142,10 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
   banners and `pre` are matched everywhere, so documentation pages such as a
   bundle's README in Plugin Manager get the same frosted code blocks as the
   transcript.
+- Hover previews — the file-diff card a changed file opens — are portaled onto
+  the page instead of into the shell, so the shared card layer stays
+  translucent. They take the same denser fill as menus plus the `surfaceBlur`
+  backdrop, which keeps the diff readable over the transcript.
 - Dialogs are portaled outside the application shell, so the plugin restores the
   theme's own background and surface tokens inside them: their panels stay
   opaque over the wallpaper, while a translucent scrim keeps its own paint.
@@ -170,6 +174,34 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 - An absent `image`, an empty `background`, `opacity: 0`, or a disabled bundle
   restores the default look after a page reload.
 - The plugin makes no model requests and reads no session data.
+
+## Changes
+
+### 1.6.2
+
+- Menus follow the surface settings. The shared menu primitive paints its panel
+  through a dedicated material layer (the first child of `[data-menu-material]`)
+  and the `--dsw-menu-surface-fill` token, so the plugin now writes both, with a
+  fill slightly denser than `surfaceOpacity` because menus open over text. The
+  slash menu, the add menu, and the other popovers built on that primitive take
+  their fill from `surfaceOpacity` and their backdrop blur from `surfaceBlur`.
+- Menus can blur again inside the composer. The composer card carried the
+  backdrop blur itself, which makes it a backdrop root and leaves every menu in
+  its subtree without a page backdrop; the card's frost moved to a layer inside
+  it, so the card still reads as frosted while its menus get a real backdrop.
+- The turn-usage popover is no longer treated as a modal dialog. It is a
+  non-modal `role="dialog"`, so the dialog token restore is skipped for it and
+  it gets its own glass surface (80% Canvas plus a 28px saturating backdrop
+  blur) instead of an opaque panel or a fully transparent one.
+- Hover previews are frosted. The changed-file diff card is portaled onto the
+  page and paints `--dsw-alias-bg-layer-1`, which the global sheet keeps
+  translucent, so it showed the transcript through the diff. It now takes the
+  same denser fill as menus plus the `surfaceBlur` backdrop.
+
+### 1.6.1
+
+- The image route sniffs the file header, so a JPEG saved with a `.png` name is
+  served as `image/jpeg`.
 
 ## Files
 
@@ -200,7 +232,7 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 Hexa5586.
 
 ```sh
 pnpm install github:Hexa5586/dsh-background-utils
-pnpm install github:Hexa5586/dsh-background-utils#v1.6.1   # 固定标签
+pnpm install github:Hexa5586/dsh-background-utils#v1.6.2   # 固定标签
 ```
 
 在 DSH 中，打开 **设置 → 插件 → 添加插件**，粘贴同一个 Git 地址并启用
@@ -258,5 +290,24 @@ pnpm install github:Hexa5586/dsh-background-utils#v1.6.1   # 固定标签
 磨砂。对话框通过 portal 渲染在应用外壳之外，插件会在其中恢复主题原本的背景与表面
 变量，面板保持不透明，遮罩层仍保留自己的半透明填充。
 
+悬停预览卡片（例如悬停变更文件时弹出的 diff 卡片）也是 portal 到页面上、而不是渲染
+在外壳内，它会采用与菜单相同的更密填充，并应用 `surfaceBlur` 的背景模糊，因此在
+对话文字之上仍然清晰可读。
+
 修改配置后刷新页面（Ctrl+R）；若未生效，重启一次 DSH。同 id 的覆盖会替换整行
 配置，因此需要保留的字段都要写。
+
+### 版本变更
+
+**1.6.2**
+
+- 斜杠菜单、「添加」菜单等共享菜单表面改为跟随 `surfaceOpacity` / `surfaceBlur`：
+  插件写入菜单材质层和 `--dsw-menu-surface-fill` 变量，填充比 `surfaceOpacity` 略密，
+  因为菜单总是浮在文字之上。
+- 菜单在输入框卡片内部重新能模糊：此前背板模糊挂在输入框卡片本身，使它成为
+  backdrop root，卡片内的菜单因此没有可模糊的页面背景；模糊改由卡片内部的一层承担。
+- 「本轮用量」浮层不再按模态对话框处理。它是非模态的 `role="dialog"`，现在跳过对话框
+  的主题变量恢复，单独使用一层玻璃表面（80% Canvas + 28px 饱和模糊）。
+- 悬停预览卡片（变更文件的 diff 卡片）改为磨砂：它 portal 到页面上、使用
+  `--dsw-alias-bg-layer-1`，以前会把对话文字透出来；现在使用与菜单相同的更密填充，
+  并应用 `surfaceBlur`。
