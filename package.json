@@ -5,6 +5,25 @@
   "description": "DeepSeek Harness background utilities: full-window wallpaper, translucent and blurred surfaces, and a composer wallpaper veil.",
   "license": "MIT",
   "author": "Hexa5586",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hexa5586/dsh-background-utils.git"
+  },
+  "homepage": "https://github.com/Hexa5586/dsh-background-utils#readme",
+  "bugs": {
+    "url": "https://github.com/Hexa5586/dsh-background-utils/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "bundle",
+    "background",
+    "wallpaper"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "exports": {
     ".": "./index.js",

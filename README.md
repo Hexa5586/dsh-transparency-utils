@@ -23,13 +23,38 @@ the DSH Desktop window (its static index bypasses Host index injection).
 
 ## Install
 
-1. Place this directory somewhere stable (for example
-   `D:\Sources\Misc\dsh-background-utils`).
+The package is a plain ESM bundle with no dependencies and no build step, so it
+installs straight from the repository.
+
+### From Git (recommended)
+
+```sh
+pnpm install github:Hexa5586/dsh-background-utils
+# pin a release tag instead of the default branch
+pnpm install github:Hexa5586/dsh-background-utils#v1.5.1
+```
+
+These URL forms are equivalent:
+
+```sh
+pnpm install git+https://github.com/Hexa5586/dsh-background-utils.git
+pnpm install https://github.com/Hexa5586/dsh-background-utils
+```
+
+A bare `pnpm install` only adds the package to the project. DSH also has to
+select the bundle for the profile, and Plugin Manager does both steps: open
+**Settings → Plugins → Add plugin**, paste the same Git URL, and enable the
+`dsh-background-utils` bundle. Its patch inserts the `background-utils` plugin
+row. From an agent, `plugin_manager` `install_bundle` with the Git URL does the
+same.
+
+### From a local directory
+
+1. Clone the repository, or place a checkout somewhere stable.
 2. In DSH, open **Settings → Plugins → Add plugin** and select the directory,
    or install it with `plugin_manager` `install_bundle` using the absolute
    directory path.
-3. Enable the `dsh-background-utils` bundle. Its patch inserts the
-   `background-utils` plugin row.
+3. Enable the `dsh-background-utils` bundle.
 
 The default configuration has an empty `background`, so installing the bundle
 does **not** change the appearance until it is configured.
@@ -132,6 +157,7 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 | `icon.svg` | Plugin icon. |
 | `README.md` | This document. |
 | `LICENSE` | MIT license text, copyright Hexa5586. |
+| `.gitignore`, `.gitattributes` | Repository hygiene: ignored local output, normalized line endings. |
 
 ## License
 
@@ -145,9 +171,21 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 Hexa5586.
 
 ### 安装
 
-把本目录放到固定位置，在 DSH 中打开 **设置 → 插件 → 添加插件** 选择该目录，
-或用 `plugin_manager` 的 `install_bundle` 安装绝对路径。安装后默认
-`background` 为空，不会改变外观。
+本项目没有依赖也没有构建步骤，可以直接从仓库安装：
+
+```sh
+pnpm install github:Hexa5586/dsh-background-utils
+pnpm install github:Hexa5586/dsh-background-utils#v1.5.1   # 固定标签
+```
+
+在 DSH 中，打开 **设置 → 插件 → 添加插件**，粘贴同一个 Git 地址并启用
+`dsh-background-utils` 这个 bundle；也可以用 `plugin_manager` 的
+`install_bundle` 传 Git 地址。只执行 `pnpm install` 只会把包装进项目，DSH 仍需
+在 profile 中选中该 bundle（Plugin Manager 会同时完成这两步）。
+
+也可以改用本地目录：把仓库克隆到固定位置，在 **设置 → 插件 → 添加插件** 中选择
+该目录，或用 `install_bundle` 传绝对路径。安装后默认 `background` 为空，不会
+改变外观。
 
 ### 配置
 
