@@ -1,0 +1,31 @@
+{
+  "name": "dsh-background-utils",
+  "version": "1.5.1",
+  "private": true,
+  "description": "DeepSeek Harness background utilities: full-window wallpaper, translucent and blurred surfaces, and a composer wallpaper veil.",
+  "license": "MIT",
+  "author": "Hexa5586",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  }
+}
