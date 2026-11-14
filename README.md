@@ -135,11 +135,13 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
   become transparent, so the wallpaper backs the whole window: sidebar,
   conversation column, bottom row, and the Trajectory view.
 - `surfaceOpacity` / `surfaceBlur` apply to the composer/input fill, markdown
-  code blocks (body and header), raised card layers, and plain `input` /
-  `textarea` / `select` controls. Menus, popovers, and other overlays keep their
-  own surfaces for readability. Code-block banners and `pre` are matched
-  everywhere, so documentation pages such as a bundle's README in Plugin
-  Manager get the same frosted code blocks as the transcript.
+  code blocks (body and header), raised card layers, plain `input` /
+  `textarea` / `select` controls, and menu surfaces. The slash menu, the add
+  menu, and every other popover built on the shared menu surface take their fill
+  from `surfaceOpacity` and their backdrop blur from `surfaceBlur`. Code-block
+  banners and `pre` are matched everywhere, so documentation pages such as a
+  bundle's README in Plugin Manager get the same frosted code blocks as the
+  transcript.
 - Dialogs are portaled outside the application shell, so the plugin restores the
   theme's own background and surface tokens inside them: their panels stay
   opaque over the wallpaper, while a translucent scrim keeps its own paint.

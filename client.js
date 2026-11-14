@@ -24,6 +24,7 @@ window.__ModuleLoader__.load({
       '--dsw-alias-bg-layer-1',
       '--dsw-alias-bg-layer-2',
       '--dsw-alias-bg-layer-3',
+      '--dsw-menu-surface-fill',
     ]
     // The window fills that the global sheet makes transparent. Dialogs are
     // portaled outside the shell, so they inherit those transparent values and

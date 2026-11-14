@@ -139,6 +139,11 @@ function buildSurfaceStylesheet(opacity) {
   if (opacity >= 1) return ''
   const percentage = Math.round(opacity * 1000) / 10
   const color = `color-mix(in srgb,Canvas ${percentage}%,transparent)`
+  // Menus open over text rather than over empty page, so their fill keeps a
+  // margin of density above the configured surface opacity; at 0.5 the panel
+  // reads 75% canvas.
+  const menuPercentage = Math.round(Math.min(1, opacity + 0.25) * 1000) / 10
+  const menuColor = `color-mix(in srgb,Canvas ${menuPercentage}%,transparent)`
   const tokens = [
     '--dsw-specific-input-major',
     '--dsw-alias-markdown-code-block',
@@ -150,6 +155,11 @@ function buildSurfaceStylesheet(opacity) {
   return [
     `body{${tokens.map((token) => `${token}:${color}!important`).join(';')}}`,
     `input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select{background-color:${color}!important}`,
+    // The shared menu surface paints a dedicated material layer — the first
+    // child of `[data-menu-material]` — instead of a plain background, so the
+    // settings have to reach that layer rather than the menu box.
+    `body{--dsw-menu-surface-fill:${menuColor}!important}`,
+    `[data-menu-material]>[aria-hidden="true"]:first-child{background-color:${menuColor}!important}`,
   ].join('')
 }
 
@@ -167,13 +177,23 @@ function buildSurfaceBlurStylesheet(radius) {
   // ancestor so documentation surfaces, such as a bundle's README page in
   // Plugin Manager, get the same frosted code blocks as the transcript.
   return [
-    '[data-composer-card],',
     '[data-code-block-banner],',
     'pre,',
     'input:not([type=checkbox]):not([type=radio]):not([type=range]),',
     'textarea,select{',
     `-webkit-backdrop-filter:${blur};backdrop-filter:${blur}`,
     '}',
+    // The composer card hosts the composer menus inside its own subtree. A
+    // backdrop-filter on the card would make it a backdrop root, and a menu in
+    // that root has nothing behind it to blur. So the card paints no blur of its
+    // own: a background layer inside it carries the frost instead, which leaves
+    // the card transparent to the menus' backdrops.
+    '[data-composer-card]{position:relative;z-index:0}',
+    `[data-composer-card]::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;-webkit-backdrop-filter:${blur};backdrop-filter:${blur}}`,
+    // The menu's material layer sits at `z-index: -1` inside an isolated
+    // stacking context, so a backdrop-filter on that layer has nothing behind it
+    // to blur. Blur the surface element instead: its backdrop is the page.
+    `[data-menu-material]{-webkit-backdrop-filter:${blur}!important;backdrop-filter:${blur}!important}`,
   ].join('')
 }
 
@@ -264,6 +284,13 @@ function buildStylesheet(layer, opacity, surfaceOpacity, surfaceBlur, background
     '}',
     buildSurfaceStylesheet(surfaceOpacity),
     buildSurfaceBlurStylesheet(surfaceBlur),
+    // The shared menu surface blurs through this value, but its material layer
+    // sits behind an isolated stacking context where the value has no effect, so
+    // the surface itself carries the blur (see buildSurfaceBlurStylesheet) and
+    // the layer keeps none to avoid doubling it.
+    surfaceBlur > 0
+      ? 'body{--dsw-menu-backdrop-filter:none!important}'
+      : '',
     buildComposerVeil(composerFadeHeight, backgroundBlur),
   ].join('')
 }
