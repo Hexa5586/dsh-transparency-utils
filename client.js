@@ -12,7 +12,9 @@
 
 window.__ModuleLoader__.load({
   id: 'dsh-background-utils',
-  factory() {
+  factory(require) {
+    const React = require('react')
+    const h = React.createElement
     const STYLE_URL = '/background-utils/style.css'
     const TRAJECTORY_SCOPE = '[data-conversation-composer-overlay]'
     const SURFACE_TOKENS = [
@@ -44,8 +46,267 @@ window.__ModuleLoader__.load({
       '[class*="Dialog"]',
     ].join(',')
 
+    // Configuration section on this bundle's page in the sidebar Plugins
+    // panel. The form reads and writes through the bundle's own Host routes,
+    // so it does not depend on the Plugin Manager's form services.
+    const CONFIG_URL = '/background-utils/config'
+    const CONFIG_SLOT = 'plugins.detail.section'
+    const CONFIG_SECTION_ID = 'background-utils-config'
+    const PACKAGE_NAME = 'dsh-background-utils'
+    const LOCALE_NS = 'backgroundUtils'
+    const FIELD_ROWS = [
+      'image', 'background', 'opacity', 'surfaceOpacity', 'surfaceBlur',
+      'backgroundBlur', 'trajectoryOpacity', 'trajectoryBlur',
+      'composerFadeHeight',
+    ]
+    const MESSAGES = {
+      en: {
+        'section.title': 'Background configuration',
+        'section.hint':
+          'Values take effect after saving and reloading the page. Leave a field empty to use its default.',
+        'action.save': 'Save',
+        'action.saving': 'Saving…',
+        'status.loading': 'Loading…',
+        'status.saved': 'Saved. Reload the page to see the change.',
+        'status.failed': 'Saving failed.',
+        'status.unavailable': 'This profile cannot change the configuration.',
+        'field.image': 'Wallpaper image path',
+        'field.background': 'Wallpaper CSS background',
+        'field.opacity': 'Wallpaper opacity',
+        'field.surfaceOpacity': 'Surface opacity',
+        'field.surfaceBlur': 'Surface blur (px)',
+        'field.backgroundBlur': 'Wallpaper blur (px)',
+        'field.trajectoryOpacity': 'Trajectory surface opacity',
+        'field.trajectoryBlur': 'Trajectory surface blur (px)',
+        'field.composerFadeHeight': 'Composer veil height (px)',
+        'field.image.hint': 'Absolute path to a local image file.',
+        'field.background.hint': 'Any CSS background value; used when no image is set.',
+        'field.scale.hint': 'Between 0 and 1.',
+      },
+      zh: {
+        'section.title': '背景配置',
+        'section.hint': '保存后需要刷新页面才会生效；留空的字段使用默认值。',
+        'action.save': '保存',
+        'action.saving': '保存中…',
+        'status.loading': '读取中…',
+        'status.saved': '已保存，刷新页面后生效。',
+        'status.failed': '保存失败。',
+        'status.unavailable': '当前 profile 不能修改配置。',
+        'field.image': '壁纸图片路径',
+        'field.background': '壁纸 CSS 背景',
+        'field.opacity': '壁纸透明度',
+        'field.surfaceOpacity': '表面不透明度',
+        'field.surfaceBlur': '表面模糊（px）',
+        'field.backgroundBlur': '壁纸模糊（px）',
+        'field.trajectoryOpacity': '轨迹页表面不透明度',
+        'field.trajectoryBlur': '轨迹页表面模糊（px）',
+        'field.composerFadeHeight': '输入框遮罩高度（px）',
+        'field.image.hint': '本地图片的绝对路径。',
+        'field.background.hint': '任意 CSS background 值；未设置图片时使用。',
+        'field.scale.hint': '取值 0 到 1。',
+      },
+    }
+    const FIELD_HINTS = {
+      image: 'field.image.hint',
+      background: 'field.background.hint',
+    }
+    const SCALE_FIELDS = new Set([
+      'opacity', 'surfaceOpacity', 'trajectoryOpacity',
+    ])
+    const styles = {
+      section: {
+        margin: '20px 0 8px',
+        padding: '16px',
+        border: '1px solid var(--dsw-alias-border-l1, rgba(127,127,127,.28))',
+        borderRadius: '12px',
+        background: 'var(--dsw-alias-bg-layer-1, transparent)',
+      },
+      title: {
+        margin: '0 0 4px',
+        fontSize: '14px',
+        fontWeight: 600,
+        color: 'var(--dsw-alias-label-primary, inherit)',
+      },
+      hint: {
+        margin: '0 0 14px',
+        fontSize: '12px',
+        color: 'var(--dsw-alias-label-tertiary, rgba(127,127,127,.9))',
+      },
+      row: {
+        display: 'grid',
+        gridTemplateColumns: 'minmax(140px, 220px) minmax(0, 1fr)',
+        alignItems: 'center',
+        gap: '12px',
+        marginBottom: '10px',
+      },
+      label: {
+        fontSize: '13px',
+        color: 'var(--dsw-alias-label-secondary, inherit)',
+      },
+      input: {
+        width: '100%',
+        boxSizing: 'border-box',
+        padding: '6px 10px',
+        fontSize: '13px',
+        fontFamily: 'inherit',
+        color: 'var(--dsw-alias-label-primary, inherit)',
+        background: 'var(--dsw-alias-bg-layer-2, rgba(127,127,127,.12))',
+        border: '1px solid var(--dsw-alias-border-l1, rgba(127,127,127,.3))',
+        borderRadius: '8px',
+      },
+      footer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        marginTop: '14px',
+      },
+      button: {
+        padding: '6px 18px',
+        fontSize: '13px',
+        fontFamily: 'inherit',
+        borderRadius: '8px',
+        border: '1px solid var(--dsw-alias-border-l1, rgba(127,127,127,.35))',
+        background: 'var(--dsw-alias-bg-layer-3, rgba(127,127,127,.18))',
+        color: 'var(--dsw-alias-label-primary, inherit)',
+        cursor: 'pointer',
+      },
+      status: {
+        fontSize: '12px',
+        color: 'var(--dsw-alias-label-tertiary, rgba(127,127,127,.9))',
+      },
+    }
+
+    /** One labeled text field of the configuration form. */
+    function Field({ t, name, value, onChange, disabled }) {
+      const id = `background-utils-${name}`
+      const hint = FIELD_HINTS[name]
+        ? `${t(FIELD_HINTS[name])}`
+        : SCALE_FIELDS.has(name)
+          ? t('field.scale.hint')
+          : ''
+      return h('div', { style: styles.row },
+        h('label', { htmlFor: id, style: styles.label }, t(`field.${name}`)),
+        h('div', { style: { minWidth: 0 } },
+          h('input', {
+            id,
+            type: 'text',
+            inputMode: SCALE_FIELDS.has(name) || name.endsWith('Blur')
+              || name === 'composerFadeHeight' ? 'decimal' : 'text',
+            spellCheck: false,
+            autoComplete: 'off',
+            value,
+            disabled,
+            style: styles.input,
+            onChange: (event) => onChange(name, event.target.value),
+          }),
+          hint === '' ? null : h('div', { style: { ...styles.status, marginTop: '4px' } }, hint),
+        ),
+      )
+    }
+
+    /** The bundle page section: loads the row configuration and saves edits. */
+    function ConfigForm({ t }) {
+      const [values, setValues] = React.useState(null)
+      const [status, setStatus] = React.useState('loading')
+      const [saving, setSaving] = React.useState(false)
+      const [saved, setSaved] = React.useState(false)
+
+      React.useEffect(() => {
+        let alive = true
+        fetch(CONFIG_URL, { cache: 'no-store' })
+          .then((response) => (response.ok
+            ? response.json()
+            : response.json().then((body) => Promise.reject(new Error(body?.error ?? 'failed')))))
+          .then((body) => {
+            if (!alive) return
+            setValues(body?.values ?? {})
+            setStatus('idle')
+          })
+          .catch(() => {
+            if (alive) setStatus('unavailable')
+          })
+        return () => { alive = false }
+      }, [])
+
+      const update = (name, value) => {
+        setValues((current) => ({ ...current, [name]: value }))
+        setSaved(false)
+      }
+
+      const save = () => {
+        if (saving) return
+        setSaving(true)
+        // The Host route carrier only admits GET, so the submitted values ride
+        // the `save` query parameter.
+        const target = `${CONFIG_URL}?save=${encodeURIComponent(JSON.stringify(values ?? {}))}`
+        fetch(target, { cache: 'no-store' })
+          .then((response) => (response.ok
+            ? response.json()
+            : response.json()
+              .then((body) => Promise.reject(new Error(body?.error ?? 'failed')))
+              .catch(() => Promise.reject(new Error('failed')))))
+          .then(() => {
+            setStatus('idle')
+            setSaved(true)
+          })
+          .catch(() => setStatus('failed'))
+          .finally(() => setSaving(false))
+      }
+
+      const disabled = values === null || status === 'unavailable'
+      const message = status === 'loading'
+        ? t('status.loading')
+        : status === 'unavailable'
+          ? t('status.unavailable')
+          : status === 'failed'
+            ? t('status.failed')
+            : saved
+              ? t('status.saved')
+              : ''
+
+      return h('section', { style: styles.section, 'aria-label': t('section.title') },
+        h('h3', { style: styles.title }, t('section.title')),
+        h('p', { style: styles.hint }, t('section.hint')),
+        disabled
+          ? null
+          : FIELD_ROWS.map((name) => h(Field, {
+            key: name,
+            t,
+            name,
+            value: values[name] ?? '',
+            disabled: saving,
+            onChange: update,
+          })),
+        h('div', { style: styles.footer },
+          h('button', {
+            type: 'button',
+            style: { ...styles.button, opacity: disabled || saving ? 0.6 : 1 },
+            disabled: disabled || saving,
+            onClick: save,
+          }, saving ? t('action.saving') : t('action.save')),
+          message === '' ? null : h('span', { role: 'status', style: styles.status }, message),
+        ),
+      )
+    }
+
+    /** Only this bundle's page gets the section. */
+    function ConfigSection({ t, subject }) {
+      if (!subject || subject.kind !== 'bundle') return null
+      if (subject.pkg?.name !== PACKAGE_NAME) return null
+      return h(ConfigForm, { t })
+    }
+
     return {
+      inject: ['slots', 'locale'],
       apply(ctx) {
+        const t = ctx.locale.bind(LOCALE_NS)
+        ctx.locale.register(LOCALE_NS, MESSAGES)
+        ctx.slots.inject(CONFIG_SLOT, () => ctx.slots.register({
+          name: CONFIG_SLOT,
+          id: CONFIG_SECTION_ID,
+          locale: LOCALE_NS,
+          order: 20,
+        }, (props) => h(ConfigSection, { t, subject: props?.subject })))
         ctx.effect(() => {
           const base = document.createElement('style')
           base.dataset.plugin = 'dsh-background-utils'

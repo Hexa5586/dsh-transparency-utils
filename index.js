@@ -32,6 +32,20 @@ import { extname, isAbsolute } from 'node:path'
 const DEFAULT_OPACITY = 1
 const IMAGE_ROUTE_PATH = '/background-utils/image'
 const STYLE_ROUTE_PATH = '/background-utils/style.css'
+const CONFIG_ROUTE_PATH = '/background-utils/config'
+const CONFIG_FIELDS = [
+  'image',
+  'background',
+  'opacity',
+  'surfaceOpacity',
+  'surfaceBlur',
+  'backgroundBlur',
+  'trajectoryOpacity',
+  'trajectoryBlur',
+  'composerFadeHeight',
+]
+const SCALE_FIELDS = new Set(['opacity', 'surfaceOpacity', 'trajectoryOpacity'])
+const BLUR_FIELDS = new Set(['surfaceBlur', 'backgroundBlur', 'trajectoryBlur'])
 
 /** Wait for the HTTP carrier before registering the routes. */
 export const inject = ['webServer']
@@ -52,8 +66,7 @@ const MEDIA_TYPES = new Map([
  * @param value - Raw configured opacity.
  * @returns The clamped opacity, or the default for a non-numeric value.
  */
-function normalizeOpacity(value) {
-  const parsed = typeof value === 'number' ? value : Number.parseFloat(value)
+function normalizeOpacity(value) {  const parsed = typeof value === 'number' ? value : Number.parseFloat(value)
   if (!Number.isFinite(parsed)) return DEFAULT_OPACITY
   return Math.min(1, Math.max(0, parsed))
 }
@@ -233,7 +246,67 @@ function buildStylesheet(layer, opacity, surfaceOpacity, surfaceBlur, background
 }
 
 /**
- * Register the stylesheet route, the image route, and nothing page-injected.
+ * Read the editable form values for the bundle page's configuration section.
+ * @param config - Row configuration from the profile patch.
+ * @returns Every editable field as the string the text box shows.
+ */
+function readConfigValues(config) {
+  const values = {}
+  for (const key of CONFIG_FIELDS) {
+    const value = config?.[key]
+    values[key] = value === undefined || value === null ? '' : String(value)
+  }
+  return values
+}
+
+/**
+ * Validate one submitted form payload into a configuration patch.
+ * An empty text box removes the field so the value falls back to its default.
+ * @param input - Parsed JSON object from the form.
+ * @returns A patch of known fields, or a message naming the bad field.
+ */
+function parseConfigPatch(input) {
+  const patch = {}
+  for (const key of CONFIG_FIELDS) {
+    if (!Object.hasOwn(input, key)) continue
+    const raw = input[key]
+    const text = raw === undefined || raw === null ? '' : String(raw).trim()
+    if (text === '') {
+      patch[key] = undefined
+      continue
+    }
+    if (key === 'image' || key === 'background') {
+      patch[key] = text
+      continue
+    }
+    const parsed = Number.parseFloat(text)
+    if (!Number.isFinite(parsed)) return { error: `${key} must be a number` }
+    if (SCALE_FIELDS.has(key)) patch[key] = Math.min(1, Math.max(0, parsed))
+    else if (BLUR_FIELDS.has(key)) patch[key] = Math.min(80, Math.max(0, parsed))
+    else patch[key] = Math.min(200, Math.max(0, parsed))
+  }
+  return { patch }
+}
+
+/**
+ * Build a JSON response for the configuration route.
+ * @param body - Serialisable payload.
+ * @param status - HTTP status code.
+ * @returns The response the route returns.
+ */
+function jsonResponse(body, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    },
+  })
+}
+
+/**
+ * Register the stylesheet route, the image route, the configuration route, and
+ * nothing page-injected.
  * @param ctx - Host plugin context.
  * @param config - Row configuration from the profile patch.
  */
@@ -263,6 +336,54 @@ export function apply(ctx, config) {
       return new Response(stylesheet, {
         headers: { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'no-store' },
       })
+    },
+  }))
+
+  // The bundle page's configuration section reads this route and writes back
+  // through the same path: the named-route carrier only admits GET, so the
+  // submitted values travel as the `save` query parameter.
+  ctx.effect(() => ctx.webServer.register({
+    kind: 'exact',
+    path: CONFIG_ROUTE_PATH,
+    async resource(request) {
+      // The carrier resolves the request target against a placeholder origin;
+      // parse defensively so a relative target or an argument-less call still
+      // yields the query.
+      let url
+      try {
+        url = new URL(request?.url ?? CONFIG_ROUTE_PATH, 'http://local')
+      } catch {
+        return jsonResponse({ error: 'Invalid request' }, 400)
+      }
+      const save = url.searchParams.get('save')
+      if (save === null) return jsonResponse({ values: readConfigValues(config) })
+
+      let input
+      try {
+        input = JSON.parse(save)
+      } catch {
+        return jsonResponse({ error: 'Invalid request' }, 400)
+      }
+      if (typeof input !== 'object' || input === null) {
+        return jsonResponse({ error: 'Invalid request' }, 400)
+      }
+      const parsed = parseConfigPatch(input)
+      if (parsed.error !== undefined) return jsonResponse({ error: parsed.error }, 400)
+
+      const editor = ctx.get('configEditor')
+      const entry = ctx.fiber?.entry
+      if (editor === undefined || entry === undefined) {
+        return jsonResponse({ error: 'Configuration is not editable in this profile.' }, 501)
+      }
+      await editor.edit(entry, (current) => {
+        const next = { ...current }
+        for (const [key, value] of Object.entries(parsed.patch)) {
+          if (value === undefined) delete next[key]
+          else next[key] = value
+        }
+        return next
+      })
+      return jsonResponse({ ok: true })
     },
   }))
 

@@ -31,7 +31,7 @@ installs straight from the repository.
 ```sh
 pnpm install github:Hexa5586/dsh-background-utils
 # pin a release tag instead of the default branch
-pnpm install github:Hexa5586/dsh-background-utils#v1.5.2
+pnpm install github:Hexa5586/dsh-background-utils#v1.6.0
 ```
 
 These URL forms are equivalent:
@@ -98,6 +98,20 @@ config:
 
 All fields are optional; the valid fields are listed below.
 
+### Edit the configuration on the bundle page
+
+The bundle carries its own configuration section: open **Plugins** in the
+sidebar, select **Background utils**, and edit the same fields as text boxes
+under the description. Labels follow the interface language (English and
+Chinese are shipped). **Save** writes the profile patch through the Host
+configuration editor, which validates and serializes the write; the change then
+needs a page reload, and the Host may restart this plugin to apply it. An empty
+field removes the override, so the value falls back to its default.
+
+The section reads and writes the bundle's own routes; it needs no direct file
+editing and no extra configuration.
+
+
 ### Fields
 
 | Field | Meaning |
@@ -129,6 +143,10 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 - Dialogs are portaled outside the application shell, so the plugin restores the
   theme's own background and surface tokens inside them: their panels stay
   opaque over the wallpaper, while a translucent scrim keeps its own paint.
+- The bundle page's configuration section reads and writes
+  `/background-utils/config`. The Host route carrier admits only `GET`, so a
+  save travels as the `save` query parameter; the route validates the values and
+  edits only this plugin's own row through the profile configuration editor.
 - The Trajectory view (`[data-conversation-composer-overlay]`) is isolated from
   the global surface settings. Its own `trajectoryOpacity` and `trajectoryBlur`
   apply there. When `trajectoryOpacity` is `1`, the plugin captures the live
@@ -180,7 +198,7 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 Hexa5586.
 
 ```sh
 pnpm install github:Hexa5586/dsh-background-utils
-pnpm install github:Hexa5586/dsh-background-utils#v1.5.2   # 固定标签
+pnpm install github:Hexa5586/dsh-background-utils#v1.6.0   # 固定标签
 ```
 
 在 DSH 中，打开 **设置 → 插件 → 添加插件**，粘贴同一个 Git 地址并启用
@@ -191,6 +209,13 @@ pnpm install github:Hexa5586/dsh-background-utils#v1.5.2   # 固定标签
 也可以改用本地目录：把仓库克隆到固定位置，在 **设置 → 插件 → 添加插件** 中选择
 该目录，或用 `install_bundle` 传绝对路径。安装后默认 `background` 为空，不会
 改变外观。
+
+### 在插件页面直接修改配置
+
+插件自带配置区：打开侧边栏的 **插件**，选中 **背景工具**，描述下方就是这些字段的
+文本框，标签跟随界面语言（已提供英文与中文）。点击 **保存** 后，插件通过宿主的
+配置编辑器写回 profile 的 patch 文件（会校验并串行写入）；之后刷新页面即可看到
+效果，必要时宿主会重启本插件。留空的字段会移除对应覆盖，回落到默认值。
 
 ### 配置
 
