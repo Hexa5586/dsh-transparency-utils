@@ -1,17 +1,17 @@
 {
-  "name": "dsh-background-utils",
+  "name": "dsh-transparency-utils",
   "version": "1.6.2",
   "private": true,
-  "description": "DeepSeek Harness background utilities: full-window wallpaper, translucent and blurred surfaces, and a composer wallpaper veil.",
+  "description": "DeepSeek Harness panel transparency utilities: full-window wallpaper, translucent and blurred surfaces, and a composer wallpaper veil.",
   "license": "MIT",
   "author": "Hexa5586",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Hexa5586/dsh-background-utils.git"
+    "url": "git+https://github.com/Hexa5586/dsh-transparency-utils.git"
   },
-  "homepage": "https://github.com/Hexa5586/dsh-background-utils#readme",
+  "homepage": "https://github.com/Hexa5586/dsh-transparency-utils#readme",
   "bugs": {
-    "url": "https://github.com/Hexa5586/dsh-background-utils/issues"
+    "url": "https://github.com/Hexa5586/dsh-transparency-utils/issues"
   },
   "keywords": [
     "dsh",

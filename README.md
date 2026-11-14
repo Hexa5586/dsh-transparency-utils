@@ -1,4 +1,4 @@
-# dsh-background-utils
+# dsh-transparency-utils
 
 DeepSeek Harness (DSH) plugin bundle for a full-window wallpaper and layered
 surface effects:
@@ -29,24 +29,24 @@ installs straight from the repository.
 ### From Git (recommended)
 
 ```sh
-pnpm install github:Hexa5586/dsh-background-utils
+pnpm install github:Hexa5586/dsh-transparency-utils
 # pin a release tag instead of the default branch
-pnpm install github:Hexa5586/dsh-background-utils#v1.6.1
+pnpm install github:Hexa5586/dsh-transparency-utils#v1.6.2
 ```
 
 These URL forms are equivalent:
 
 ```sh
-pnpm install git+https://github.com/Hexa5586/dsh-background-utils.git
-pnpm install https://github.com/Hexa5586/dsh-background-utils
+pnpm install git+https://github.com/Hexa5586/dsh-transparency-utils.git
+pnpm install https://github.com/Hexa5586/dsh-transparency-utils
 ```
 
 A bare `pnpm install` only adds the package to the project. DSH also has to
 select the bundle for the profile, and Plugin Manager does both steps: open
 **Settings → Plugins → Add plugin**, paste the same Git URL, and enable the
-`dsh-background-utils` bundle. Its patch inserts the `background-utils` plugin
-row. From an agent, `plugin_manager` `install_bundle` with the Git URL does the
-same.
+`dsh-transparency-utils` bundle. Its patch inserts the `transparency-utils`
+plugin row. From an agent, `plugin_manager` `install_bundle` with the Git URL
+does the same.
 
 ### From a local directory
 
@@ -54,7 +54,7 @@ same.
 2. In DSH, open **Settings → Plugins → Add plugin** and select the directory,
    or install it with `plugin_manager` `install_bundle` using the absolute
    directory path.
-3. Enable the `dsh-background-utils` bundle.
+3. Enable the `dsh-transparency-utils` bundle.
 
 The default configuration has an empty `background`, so installing the bundle
 does **not** change the appearance until it is configured.
@@ -72,8 +72,8 @@ edit) an override row; a matching-id override replaces the whole row config, so
 include every field you need:
 
 ```yaml
-- id: background-utils
-  name: "dsh-background-utils"
+- id: transparency-utils
+  name: "dsh-transparency-utils"
   config:
     image: 'C:\path\to\wallpaper.webp'
     opacity: 0.4
@@ -101,8 +101,8 @@ All fields are optional; the valid fields are listed below.
 ### Edit the configuration on the bundle page
 
 The bundle carries its own configuration section: open **Plugins** in the
-sidebar, select **Background utils**, and edit the same fields as text boxes
-under the description. Labels follow the interface language (English and
+sidebar, select **Panel transparency utils**, and edit the same fields as text
+boxes under the description. Labels follow the interface language (English and
 Chinese are shipped). **Save** writes the profile patch through the Host
 configuration editor, which validates and serializes the write; the change then
 needs a page reload, and the Host may restart this plugin to apply it. An empty
@@ -116,7 +116,7 @@ editing and no extra configuration.
 
 | Field | Meaning |
 |---|---|
-| `image` | Absolute path to a local image (`png`, `jpg`, `jpeg`, `webp`, `gif`, `avif`, `svg`). The plugin serves it at `/background-utils/image` with the type its bytes declare, so a JPEG saved with a `.png` name still renders correctly. No `file://` URL is needed. |
+| `image` | Absolute path to a local image (`png`, `jpg`, `jpeg`, `webp`, `gif`, `avif`, `svg`). The plugin serves it at `/transparency-utils/image` with the type its bytes declare, so a JPEG saved with a `.png` name still renders correctly. No `file://` URL is needed. |
 | `background` | CSS `background` value: a color, a gradient, or a remote `url("...")`. Used when `image` is absent, missing, or has an unsupported extension. |
 | `opacity` | Wallpaper layer opacity from `0` to `1`; defaults to `1`. `0` leaves the window unchanged. |
 | `surfaceOpacity` | How opaque text boxes, code boxes, and raised cards stay over the wallpaper, from `0` (fully transparent) to `1` (unchanged). Defaults to `1`. |
@@ -150,7 +150,7 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
   theme's own background and surface tokens inside them: their panels stay
   opaque over the wallpaper, while a translucent scrim keeps its own paint.
 - The bundle page's configuration section reads and writes
-  `/background-utils/config`. The Host route carrier admits only `GET`, so a
+  `/transparency-utils/config`. The Host route carrier admits only `GET`, so a
   save travels as the `save` query parameter; the route validates the values and
   edits only this plugin's own row through the profile configuration editor.
 - The Trajectory view (`[data-conversation-composer-overlay]`) is isolated from
@@ -197,6 +197,10 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
   page and paints `--dsw-alias-bg-layer-1`, which the global sheet keeps
   translucent, so it showed the transcript through the diff. It now takes the
   same denser fill as menus plus the `surfaceBlur` backdrop.
+- The package is renamed to `dsh-transparency-utils`, matching the repository.
+  The bundle patch inserts the `transparency-utils` row, the routes serve under
+  `/transparency-utils/`, and the plugin page shows the localized name
+  “Panel transparency utils” / “面板透明化工具”.
 
 ### 1.6.1
 
@@ -209,7 +213,7 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 |---|---|
 | `index.js` | Host half: config, image route, stylesheet route. |
 | `client.js` | Client half: applies the stylesheet and builds the Trajectory overrides. |
-| `cordis.patch.yml` | Bundle patch inserting the `background-utils` row. |
+| `cordis.patch.yml` | Bundle patch inserting the `transparency-utils` row. |
 | `locale/en.json`, `locale/zh.json` | Plugin Manager title and description. |
 | `icon.svg` | Plugin icon. |
 | `README.md` | This document. |
@@ -222,7 +226,7 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 Hexa5586.
 
 ## 中文
 
-`dsh-background-utils` 是一个 DSH 背景工具插件，提供：整窗壁纸、壁纸透明度与
+`dsh-transparency-utils` 是一个 DSH 面板透明化插件，提供：整窗壁纸、壁纸透明度与
 模糊、半透明/磨砂的文本框与代码框、轨迹页面独立设置，以及输入框上方的真实壁纸
 遮罩。
 
@@ -231,12 +235,12 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 Hexa5586.
 本项目没有依赖也没有构建步骤，可以直接从仓库安装：
 
 ```sh
-pnpm install github:Hexa5586/dsh-background-utils
-pnpm install github:Hexa5586/dsh-background-utils#v1.6.2   # 固定标签
+pnpm install github:Hexa5586/dsh-transparency-utils
+pnpm install github:Hexa5586/dsh-transparency-utils#v1.6.2   # 固定标签
 ```
 
 在 DSH 中，打开 **设置 → 插件 → 添加插件**，粘贴同一个 Git 地址并启用
-`dsh-background-utils` 这个 bundle；也可以用 `plugin_manager` 的
+`dsh-transparency-utils` 这个 bundle；也可以用 `plugin_manager` 的
 `install_bundle` 传 Git 地址。只执行 `pnpm install` 只会把包装进项目，DSH 仍需
 在 profile 中选中该 bundle（Plugin Manager 会同时完成这两步）。
 
@@ -246,7 +250,7 @@ pnpm install github:Hexa5586/dsh-background-utils#v1.6.2   # 固定标签
 
 ### 在插件页面直接修改配置
 
-插件自带配置区：打开侧边栏的 **插件**，选中 **背景工具**，描述下方就是这些字段的
+插件自带配置区：打开侧边栏的 **插件**，选中 **面板透明化工具**，描述下方就是这些字段的
 文本框，标签跟随界面语言（已提供英文与中文）。点击 **保存** 后，插件通过宿主的
 配置编辑器写回 profile 的 patch 文件（会校验并串行写入）；之后刷新页面即可看到
 效果，必要时宿主会重启本插件。留空的字段会移除对应覆盖，回落到默认值。
@@ -258,8 +262,8 @@ pnpm install github:Hexa5586/dsh-background-utils#v1.6.2   # 固定标签
 `DSH_PROFILE_DIR` 定位）：
 
 ```yaml
-- id: background-utils
-  name: "dsh-background-utils"
+- id: transparency-utils
+  name: "dsh-transparency-utils"
   config:
     image: 'C:\path\to\wallpaper.webp'
     opacity: 0.4
@@ -274,7 +278,7 @@ pnpm install github:Hexa5586/dsh-background-utils#v1.6.2   # 固定标签
 字段说明：
 
 - `image`：本地图片绝对路径，支持 `png`、`jpg`、`jpeg`、`webp`、`gif`、`avif`、`svg`；
-  由插件通过 `/background-utils/image` 提供，返回的 MIME 类型按文件实际内容判定，所以
+  由插件通过 `/transparency-utils/image` 提供，返回的 MIME 类型按文件实际内容判定，所以
   内容是 JPEG 但后缀写成 `.png` 的文件也能正常显示；不需要 `file://`。
 - `background`：任意 CSS background 值（颜色、渐变或远程 `url("...")`），在没有
   可用 `image` 时使用。
@@ -311,3 +315,6 @@ pnpm install github:Hexa5586/dsh-background-utils#v1.6.2   # 固定标签
 - 悬停预览卡片（变更文件的 diff 卡片）改为磨砂：它 portal 到页面上、使用
   `--dsw-alias-bg-layer-1`，以前会把对话文字透出来；现在使用与菜单相同的更密填充，
   并应用 `surfaceBlur`。
+- 项目更名为 `dsh-transparency-utils`：bundle patch 插入的行 id 改为
+  `transparency-utils`，路由改到 `/transparency-utils/`，插件页显示的名称改为
+  「面板透明化工具」（英文为 Panel transparency utils）。

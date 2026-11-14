@@ -1,6 +1,6 @@
 - insert:
-    - id: background-utils
-      name: 'dsh-background-utils'
+    - id: transparency-utils
+      name: 'dsh-transparency-utils'
       config:
         background: ''
         opacity: 1

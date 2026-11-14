@@ -1,5 +1,5 @@
 /**
- * Host half of the dsh-background-utils bundle. It owns the configuration,
+ * Host half of the dsh-transparency-utils bundle. It owns the configuration,
  * serves the browser stylesheet and, when configured, the local image. The
  * Client half applies the stylesheet at runtime, so the background works in
  * both the Web GUI and Desktop, whose window serves its index statically.
@@ -30,9 +30,9 @@ import { readFile } from 'node:fs/promises'
 import { extname, isAbsolute } from 'node:path'
 
 const DEFAULT_OPACITY = 1
-const IMAGE_ROUTE_PATH = '/background-utils/image'
-const STYLE_ROUTE_PATH = '/background-utils/style.css'
-const CONFIG_ROUTE_PATH = '/background-utils/config'
+const IMAGE_ROUTE_PATH = '/transparency-utils/image'
+const STYLE_ROUTE_PATH = '/transparency-utils/style.css'
+const CONFIG_ROUTE_PATH = '/transparency-utils/config'
 const CONFIG_FIELDS = [
   'image',
   'background',

@@ -1,5 +1,5 @@
 /**
- * Browser half of the dsh-background-utils bundle. It fetches the stylesheet the
+ * Browser half of the dsh-transparency-utils bundle. It fetches the stylesheet the
  * Host composes from the plugin configuration and owns it as a style element,
  * so the background appears in the Web GUI and in Desktop, whose window serves
  * its index without Host index injections.
@@ -11,11 +11,11 @@
  */
 
 window.__ModuleLoader__.load({
-  id: 'dsh-background-utils',
+  id: 'dsh-transparency-utils',
   factory(require) {
     const React = require('react')
     const h = React.createElement
-    const STYLE_URL = '/background-utils/style.css'
+    const STYLE_URL = '/transparency-utils/style.css'
     const TRAJECTORY_SCOPE = '[data-conversation-composer-overlay]'
     const SURFACE_TOKENS = [
       '--dsw-specific-input-major',
@@ -52,11 +52,11 @@ window.__ModuleLoader__.load({
     // Configuration section on this bundle's page in the sidebar Plugins
     // panel. The form reads and writes through the bundle's own Host routes,
     // so it does not depend on the Plugin Manager's form services.
-    const CONFIG_URL = '/background-utils/config'
+    const CONFIG_URL = '/transparency-utils/config'
     const CONFIG_SLOT = 'plugins.detail.section'
-    const CONFIG_SECTION_ID = 'background-utils-config'
-    const PACKAGE_NAME = 'dsh-background-utils'
-    const LOCALE_NS = 'backgroundUtils'
+    const CONFIG_SECTION_ID = 'transparency-utils-config'
+    const PACKAGE_NAME = 'dsh-transparency-utils'
+    const LOCALE_NS = 'transparencyUtils'
     const FIELD_ROWS = [
       'image', 'background', 'opacity', 'surfaceOpacity', 'surfaceBlur',
       'backgroundBlur', 'trajectoryOpacity', 'trajectoryBlur',
@@ -181,7 +181,7 @@ window.__ModuleLoader__.load({
 
     /** One labeled text field of the configuration form. */
     function Field({ t, name, value, onChange, disabled }) {
-      const id = `background-utils-${name}`
+      const id = `transparency-utils-${name}`
       const hint = FIELD_HINTS[name]
         ? `${t(FIELD_HINTS[name])}`
         : SCALE_FIELDS.has(name)
@@ -312,11 +312,11 @@ window.__ModuleLoader__.load({
         }, (props) => h(ConfigSection, { t, subject: props?.subject })))
         ctx.effect(() => {
           const base = document.createElement('style')
-          base.dataset.plugin = 'dsh-background-utils'
+          base.dataset.plugin = 'dsh-transparency-utils'
           const trajectory = document.createElement('style')
-          trajectory.dataset.plugin = 'dsh-background-utils/trajectory'
+          trajectory.dataset.plugin = 'dsh-transparency-utils/trajectory'
           const dialogs = document.createElement('style')
-          dialogs.dataset.plugin = 'dsh-background-utils/dialogs'
+          dialogs.dataset.plugin = 'dsh-transparency-utils/dialogs'
           document.head.append(base, trajectory, dialogs)
 
           const controller = new AbortController()
