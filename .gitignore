@@ -1,0 +1,18 @@
+# Dependencies installed by pnpm, npm, or the DSH Plugin Manager
+node_modules/
+.pnpm-store/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor and OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local build or packing output
+*.tgz
+dist/

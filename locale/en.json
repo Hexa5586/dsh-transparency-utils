@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Background utils",
+    "description": "Adds a full-window wallpaper and controls how the DSH surfaces sit over it. Configure the background-utils row in the profile's cordis.patch.yml: set image to an absolute local image path (served by the plugin, so no file:// URL is needed), or background to a CSS color, gradient, or remote url(...), plus opacity. surfaceOpacity and surfaceBlur tune translucent and frosted text and code boxes, backgroundBlur blurs the wallpaper, trajectoryOpacity and trajectoryBlur isolate the Trajectory view, and composerFadeHeight adds a wallpaper veil above the composer that fades transcript text out and hides it behind the input. Reload the page after changing the configuration. The defaults leave the window unchanged."
+  }
+}

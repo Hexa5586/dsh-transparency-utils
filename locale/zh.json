@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "背景工具",
+    "description": "为 DSH 添加整窗壁纸，并控制界面表面在壁纸上的效果。请在 profile 的 cordis.patch.yml 中配置 background-utils 行：把 image 设为本地图片绝对路径（由插件直接提供，无需 file://），或把 background 设为 CSS 颜色、渐变或远程 url(...)，并设置 opacity。surfaceOpacity 和 surfaceBlur 控制文本框、代码框的半透明与磨砂效果；backgroundBlur 模糊壁纸本身；trajectoryOpacity、trajectoryBlur 独立控制轨迹页面；composerFadeHeight 在输入框上方添加真实壁纸遮罩，让对话文字渐隐并被输入框遮住。修改配置后刷新页面。默认配置不会改变外观。"
+  }
+}
