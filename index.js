@@ -10,16 +10,13 @@
  * - image: absolute path to a local image file; when it exists the plugin
  *   serves it at a same-origin route and uses it instead of `background`.
  * - opacity: 0..1, the background layer's opacity; invalid values fall back to 1.
- * - surfaceOpacity: 0..1, how opaque text boxes, code boxes, and raised cards
- *   stay over the background; 1 keeps them unchanged; defaults to 1.
- * - surfaceBlur: backdrop blur in px behind the translucent text and code
- *   surfaces; defaults to 0.
+ * - panelOpacity: 0..1, how opaque panels (text boxes, code boxes, raised
+ *   cards, menus, and the Trajectory view) stay over the background; 1 keeps
+ *   them unchanged; defaults to 1.
+ * - panelBlur: backdrop blur in px behind those translucent panels; defaults
+ *   to 0.
  * - backgroundBlur: blur in px applied to the background image itself;
  *   defaults to 0.
- * - trajectoryOpacity: surface opacity for the trajectory view only; defaults
- *   to 1 (the theme's original opaque surfaces).
- * - trajectoryBlur: backdrop blur in px for the trajectory view only; defaults
- *   to 0.
  * - composerFadeHeight: height in px of the wallpaper veil above the composer;
  *   the veil fades the transcript out and hides it behind the composer card.
  *   Defaults to 36; 0 disables it.
@@ -37,15 +34,13 @@ const CONFIG_FIELDS = [
   'image',
   'background',
   'opacity',
-  'surfaceOpacity',
-  'surfaceBlur',
+  'panelOpacity',
+  'panelBlur',
   'backgroundBlur',
-  'trajectoryOpacity',
-  'trajectoryBlur',
   'composerFadeHeight',
 ]
-const SCALE_FIELDS = new Set(['opacity', 'surfaceOpacity', 'trajectoryOpacity'])
-const BLUR_FIELDS = new Set(['surfaceBlur', 'backgroundBlur', 'trajectoryBlur'])
+const SCALE_FIELDS = new Set(['opacity', 'panelOpacity'])
+const BLUR_FIELDS = new Set(['panelBlur', 'backgroundBlur'])
 
 /**
  * The floating card of a hover preview (for example the file-diff card a
@@ -141,18 +136,19 @@ function normalizeBlur(value) {
 }
 
 /**
- * Build the translucent surface rules for text boxes, code boxes, and cards.
- * The surface tokens are replaced with a per-theme Canvas color at the given
- * alpha, so the wallpaper shows through while text keeps a readable scrim.
- * @param opacity - Surface opacity in [0, 1]; 1 leaves the surfaces untouched.
- * @returns CSS text, or an empty string when the surfaces stay opaque.
+ * Build the translucent panel rules for text boxes, code boxes, cards, and
+ * menus. The panel tokens are replaced with a per-theme Canvas color at the
+ * given alpha, so the wallpaper shows through while text keeps a readable
+ * scrim.
+ * @param opacity - Panel opacity in [0, 1]; 1 leaves the panels untouched.
+ * @returns CSS text, or an empty string when the panels stay opaque.
  */
-function buildSurfaceStylesheet(opacity) {
+function buildPanelStylesheet(opacity) {
   if (opacity >= 1) return ''
   const percentage = Math.round(opacity * 1000) / 10
   const color = `color-mix(in srgb,Canvas ${percentage}%,transparent)`
   // Menus open over text rather than over empty page, so their fill keeps a
-  // margin of density above the configured surface opacity; at 0.5 the panel
+  // margin of density above the configured panel opacity; at 0.5 the panel
   // reads 75% canvas.
   const menuPercentage = Math.round(Math.min(1, opacity + 0.25) * 1000) / 10
   const menuColor = `color-mix(in srgb,Canvas ${menuPercentage}%,transparent)`
@@ -182,13 +178,13 @@ function buildSurfaceStylesheet(opacity) {
 }
 
 /**
- * Build the backdrop-blur rules for the translucent text and code surfaces.
- * Only elements with a stable surface identity are targeted, so no transparent
- * container gets an accidental blurred rectangle.
+ * Build the backdrop-blur rules for the translucent panels. Only elements with
+ * a stable panel identity are targeted, so no transparent container gets an
+ * accidental blurred rectangle.
  * @param radius - Backdrop blur radius in px; 0 disables it.
  * @returns CSS text, or an empty string when disabled.
  */
-function buildSurfaceBlurStylesheet(radius) {
+function buildPanelBlurStylesheet(radius) {
   if (radius <= 0) return ''
   const blur = `blur(${Math.round(radius * 100) / 100}px)`
   // `pre` and the code-block banner are matched without a conversation
@@ -273,22 +269,19 @@ function buildComposerVeil(fadeHeight, backgroundBlur) {
  * fixed `body::before` layer carries the configured background and opacity.
  * @param layer - CSS background value for the layer.
  * @param opacity - Clamped layer opacity.
- * @param surfaceOpacity - Clamped opacity for text, code, and card surfaces.
- * @param surfaceBlur - Clamped backdrop blur radius for those surfaces.
+ * @param panelOpacity - Clamped opacity for the panels.
+ * @param panelBlur - Clamped backdrop blur radius for the panels.
  * @param backgroundBlur - Clamped blur radius for the background image.
- * @param trajectoryOpacity - Clamped surface opacity for the trajectory view.
- * @param trajectoryBlur - Clamped backdrop blur for the trajectory view.
  * @param composerFadeHeight - Composer veil fade height in px.
  * @returns Complete CSS text.
  */
-function buildStylesheet(layer, opacity, surfaceOpacity, surfaceBlur, backgroundBlur, trajectoryOpacity, trajectoryBlur, composerFadeHeight) {
+function buildStylesheet(layer, opacity, panelOpacity, panelBlur, backgroundBlur, composerFadeHeight) {
   // Blur bleeds past the element edges; overdrawing the fixed layer by twice
   // the radius hides the transparent bleed at the viewport borders.
   const inset = backgroundBlur > 0 ? `-${backgroundBlur * 2}px` : '0'
   return [
-    // The Client half reads the trajectory values to build its own overrides;
-    // the veil pseudos reuse the layer/opacity/blur values.
-    `:root{--wb-trajectory-opacity:${trajectoryOpacity};--wb-trajectory-blur:${trajectoryBlur}px;--wb-layer:${layer};--wb-layer-opacity:${opacity};--wb-layer-blur:${backgroundBlur}px;--wb-veil-fade:${composerFadeHeight}px}`,
+    // The veil pseudos reuse the layer, opacity, and blur values.
+    `:root{--wb-layer:${layer};--wb-layer-opacity:${opacity};--wb-layer-blur:${backgroundBlur}px;--wb-veil-fade:${composerFadeHeight}px}`,
     'html{background-color:Canvas!important}',
     // The base surface and the sidebar column share two opaque fills; clearing
     // both lets the background layer back the center column and the sidebar.
@@ -304,13 +297,13 @@ function buildStylesheet(layer, opacity, surfaceOpacity, surfaceBlur, background
     backgroundBlur > 0 ? `filter:blur(${backgroundBlur}px);` : '',
     `opacity:${opacity};`,
     '}',
-    buildSurfaceStylesheet(surfaceOpacity),
-    buildSurfaceBlurStylesheet(surfaceBlur),
+    buildPanelStylesheet(panelOpacity),
+    buildPanelBlurStylesheet(panelBlur),
     // The shared menu surface blurs through this value, but its material layer
     // sits behind an isolated stacking context where the value has no effect, so
-    // the surface itself carries the blur (see buildSurfaceBlurStylesheet) and
-    // the layer keeps none to avoid doubling it.
-    surfaceBlur > 0
+    // the surface itself carries the blur (see buildPanelBlurStylesheet) and the
+    // layer keeps none to avoid doubling it.
+    panelBlur > 0
       ? 'body{--dsw-menu-backdrop-filter:none!important}'
       : '',
     buildComposerVeil(composerFadeHeight, backgroundBlur),
@@ -387,18 +380,16 @@ export function apply(ctx, config) {
   const value = config?.background
   const background = typeof value === 'string' ? value.trim() : ''
   const opacity = normalizeOpacity(config?.opacity)
-  const surfaceOpacity = normalizeOpacity(config?.surfaceOpacity)
-  const surfaceBlur = normalizeBlur(config?.surfaceBlur)
+  const panelOpacity = normalizeOpacity(config?.panelOpacity)
+  const panelBlur = normalizeBlur(config?.panelBlur)
   const backgroundBlur = normalizeBlur(config?.backgroundBlur)
-  const trajectoryOpacity = normalizeOpacity(config?.trajectoryOpacity)
-  const trajectoryBlur = normalizeBlur(config?.trajectoryBlur)
   const composerFadeHeight = normalizeFadeHeight(config?.composerFadeHeight)
   // An empty layer or zero opacity means "leave the window unchanged";
-  // emitting styles here would still make the base surfaces transparent.
+  // emitting styles here would still make the base panels transparent.
   const enabled = (image !== undefined || background !== '') && opacity > 0
   const layer = image === undefined ? escapeStyleValue(background) : `url("${IMAGE_ROUTE_PATH}")`
   const stylesheet = enabled
-    ? buildStylesheet(layer, opacity, surfaceOpacity, surfaceBlur, backgroundBlur, trajectoryOpacity, trajectoryBlur, composerFadeHeight)
+    ? buildStylesheet(layer, opacity, panelOpacity, panelBlur, backgroundBlur, composerFadeHeight)
     : ''
 
   ctx.effect(() => ctx.webServer.register({

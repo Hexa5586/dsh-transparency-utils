@@ -1,12 +1,13 @@
 # dsh-transparency-utils
 
 DeepSeek Harness (DSH) plugin bundle for a full-window wallpaper and layered
-surface effects:
+panel effects:
 
 - a full-window wallpaper from a local image or any CSS background value;
 - adjustable wallpaper opacity and blur;
-- translucent, optionally backdrop-blurred text boxes, code boxes, and cards;
-- an independent transparency/blur profile for the **Trajectory** view;
+- translucent, optionally backdrop-blurred panels: text boxes, code boxes,
+  cards, menus, and hover previews;
+- the **Trajectory** view follows the same panel opacity and blur;
 - a wallpaper veil above the composer that fades transcript text out and hides
   it behind the input, so the background shows through cleanly.
 
@@ -77,11 +78,9 @@ include every field you need:
   config:
     image: 'C:\path\to\wallpaper.webp'
     opacity: 0.4
-    surfaceOpacity: 0.5
-    surfaceBlur: 12
+    panelOpacity: 0.5
+    panelBlur: 12
     backgroundBlur: 0
-    trajectoryOpacity: 1
-    trajectoryBlur: 0
     composerFadeHeight: 36
 ```
 
@@ -91,8 +90,8 @@ Color or gradient instead of a local image:
 config:
   background: 'radial-gradient(circle at 30% 20%, #2b4a75, #0b1220 70%)'
   opacity: 0.6
-  surfaceOpacity: 0.5
-  surfaceBlur: 12
+  panelOpacity: 0.5
+  panelBlur: 12
   composerFadeHeight: 36
 ```
 
@@ -119,11 +118,9 @@ editing and no extra configuration.
 | `image` | Absolute path to a local image (`png`, `jpg`, `jpeg`, `webp`, `gif`, `avif`, `svg`). The plugin serves it at `/transparency-utils/image` with the type its bytes declare, so a JPEG saved with a `.png` name still renders correctly. No `file://` URL is needed. |
 | `background` | CSS `background` value: a color, a gradient, or a remote `url("...")`. Used when `image` is absent, missing, or has an unsupported extension. |
 | `opacity` | Wallpaper layer opacity from `0` to `1`; defaults to `1`. `0` leaves the window unchanged. |
-| `surfaceOpacity` | How opaque text boxes, code boxes, and raised cards stay over the wallpaper, from `0` (fully transparent) to `1` (unchanged). Defaults to `1`. |
-| `surfaceBlur` | Backdrop blur radius in px for the composer, code blocks (including their header row), and text/select fields. `0` disables it. |
+| `panelOpacity` | How opaque the panels stay over the wallpaper, from `0` (fully transparent) to `1` (unchanged). Panels are the prompt and its composer card, text boxes, code boxes (body and header), raised cards, menus, hover previews, and the Trajectory view. Defaults to `1`. |
+| `panelBlur` | Backdrop blur radius in px for those panels. `0` disables it. |
 | `backgroundBlur` | Blur radius in px applied to the wallpaper image itself. `0` keeps it sharp. |
-| `trajectoryOpacity` | Surface opacity for the Trajectory view only. `1` (default) restores the theme's original opaque surfaces there. |
-| `trajectoryBlur` | Backdrop blur radius in px for the Trajectory view only. `0` (default) keeps it unblurred. |
 | `composerFadeHeight` | Height in px of the wallpaper veil above the composer. Defaults to `36`; `0` disables it. |
 
 After changing the configuration, reload the page (Ctrl+R). If the change does
@@ -134,33 +131,28 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 - The wallpaper sits behind the UI. The base background and the sidebar fill
   become transparent, so the wallpaper backs the whole window: sidebar,
   conversation column, bottom row, and the Trajectory view.
-- `surfaceOpacity` / `surfaceBlur` apply to the composer/input fill, markdown
+- `panelOpacity` / `panelBlur` apply to the composer/input fill, markdown
   code blocks (body and header), raised card layers, plain `input` /
   `textarea` / `select` controls, and menu surfaces. The slash menu, the add
   menu, and every other popover built on the shared menu surface take their fill
-  from `surfaceOpacity` and their backdrop blur from `surfaceBlur`. Code-block
+  from `panelOpacity` and their backdrop blur from `panelBlur`. Code-block
   banners and `pre` are matched everywhere, so documentation pages such as a
   bundle's README in Plugin Manager get the same frosted code blocks as the
   transcript.
 - Hover previews — the file-diff card a changed file opens — are portaled onto
   the page instead of into the shell, so the shared card layer stays
-  translucent. They take the same denser fill as menus plus the `surfaceBlur`
+  translucent. They take the same denser fill as menus plus the `panelBlur`
   backdrop, which keeps the diff readable over the transcript.
 - Dialogs are portaled outside the application shell, so the plugin restores the
-  theme's own background and surface tokens inside them: their panels stay
+  theme's own background and panel tokens inside them: their panels stay
   opaque over the wallpaper, while a translucent scrim keeps its own paint.
 - The bundle page's configuration section reads and writes
   `/transparency-utils/config`. The Host route carrier admits only `GET`, so a
   save travels as the `save` query parameter; the route validates the values and
   edits only this plugin's own row through the profile configuration editor.
-- The Trajectory view (`[data-conversation-composer-overlay]`) is isolated from
-  the global surface settings. Its own `trajectoryOpacity` and `trajectoryBlur`
-  apply there. When `trajectoryOpacity` is `1`, the plugin captures the live
-  theme tokens and restores them inside the view, so its cards, table, toolbar,
-  code blocks, and inputs keep the theme's original opaque surfaces. The
-  captured values are refreshed when the light/dark theme changes. Portaled
-  menus opened from the view are outside its DOM scope and still use the global
-  settings.
+- The Trajectory view (`[data-conversation-composer-overlay]`) uses the same
+  `panelOpacity` and `panelBlur` as the rest of the window; it has no separate
+  settings of its own. Portaled menus opened from the view take the same values.
 - `composerFadeHeight` paints the veil from the actual wallpaper, not a color:
   an opaque canvas backing plus the wallpaper image at the configured opacity
   and blur, masked to fade in over the top band. The transcript fades out above
@@ -179,12 +171,12 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 
 ### 1.6.2
 
-- Menus follow the surface settings. The shared menu primitive paints its panel
+- Menus follow the panel settings. The shared menu primitive paints its panel
   through a dedicated material layer (the first child of `[data-menu-material]`)
   and the `--dsw-menu-surface-fill` token, so the plugin now writes both, with a
-  fill slightly denser than `surfaceOpacity` because menus open over text. The
+  fill slightly denser than `panelOpacity` because menus open over text. The
   slash menu, the add menu, and the other popovers built on that primitive take
-  their fill from `surfaceOpacity` and their backdrop blur from `surfaceBlur`.
+  their fill from `panelOpacity` and their backdrop blur from `panelBlur`.
 - Menus can blur again inside the composer. The composer card carried the
   backdrop blur itself, which makes it a backdrop root and leaves every menu in
   its subtree without a page backdrop; the card's frost moved to a layer inside
@@ -196,11 +188,17 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 - Hover previews are frosted. The changed-file diff card is portaled onto the
   page and paints `--dsw-alias-bg-layer-1`, which the global sheet keeps
   translucent, so it showed the transcript through the diff. It now takes the
-  same denser fill as menus plus the `surfaceBlur` backdrop.
+  same denser fill as menus plus the `panelBlur` backdrop.
 - The package is renamed to `dsh-transparency-utils`, matching the repository.
   The bundle patch inserts the `transparency-utils` row, the routes serve under
   `/transparency-utils/`, and the plugin page shows the localized name
   “Panel transparency utils” / “面板透明化工具”.
+- The panel settings are renamed: `surfaceOpacity` / `surfaceBlur` became
+  `panelOpacity` / `panelBlur`, and the Chinese labels say 面板 instead of 表面.
+  The Trajectory view no longer has its own `trajectoryOpacity` /
+  `trajectoryBlur`; it follows `panelOpacity` / `panelBlur` like every other
+  panel, so its card, table, toolbar, code blocks, and inputs are no longer
+  restored to the theme's opaque surfaces.
 
 ### 1.6.1
 
@@ -212,7 +210,7 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 | File | Role |
 |---|---|
 | `index.js` | Host half: config, image route, stylesheet route. |
-| `client.js` | Client half: applies the stylesheet and builds the Trajectory overrides. |
+| `client.js` | Client half: applies the stylesheet and restores tokens inside portaled dialogs. |
 | `cordis.patch.yml` | Bundle patch inserting the `transparency-utils` row. |
 | `locale/en.json`, `locale/zh.json` | Plugin Manager title and description. |
 | `icon.svg` | Plugin icon. |
@@ -227,8 +225,8 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 Hexa5586.
 ## 中文
 
 `dsh-transparency-utils` 是一个 DSH 面板透明化插件，提供：整窗壁纸、壁纸透明度与
-模糊、半透明/磨砂的文本框与代码框、轨迹页面独立设置，以及输入框上方的真实壁纸
-遮罩。
+模糊、半透明/磨砂的面板（文本框、代码框、卡片、菜单、悬停预览）、轨迹页沿用同一套
+面板设置，以及输入框上方的真实壁纸遮罩。
 
 ### 安装
 
@@ -267,11 +265,9 @@ pnpm install github:Hexa5586/dsh-transparency-utils#v1.6.2   # 固定标签
   config:
     image: 'C:\path\to\wallpaper.webp'
     opacity: 0.4
-    surfaceOpacity: 0.5
-    surfaceBlur: 12
+    panelOpacity: 0.5
+    panelBlur: 12
     backgroundBlur: 0
-    trajectoryOpacity: 1
-    trajectoryBlur: 0
     composerFadeHeight: 36
 ```
 
@@ -283,19 +279,18 @@ pnpm install github:Hexa5586/dsh-transparency-utils#v1.6.2   # 固定标签
 - `background`：任意 CSS background 值（颜色、渐变或远程 `url("...")`），在没有
   可用 `image` 时使用。
 - `opacity`：壁纸透明度，0 到 1。
-- `surfaceOpacity`：文本框、代码框、卡片等表面的不透明度，0 全透明，1 保持原样。
-- `surfaceBlur`：这些表面背后的磨砂模糊半径（像素）。
+- `panelOpacity`：面板（文本框、代码框、卡片、菜单、悬停预览、轨迹页）的不透明度，
+  0 全透明，1 保持原样。
+- `panelBlur`：这些面板背后的磨砂模糊半径（像素）。
 - `backgroundBlur`：壁纸图本身的模糊半径（像素）。
-- `trajectoryOpacity` / `trajectoryBlur`：仅轨迹页面使用的表面透明度/模糊，不受
-  全局设置影响；`trajectoryOpacity: 1` 会恢复主题原本的不透明表面。
 - `composerFadeHeight`：输入框上方壁纸遮罩高度（像素），默认 36；0 关闭。
 
 代码框顶部栏和 `pre` 不限定在对话区内，因此插件 README 等文档页面的代码框同样会被
-磨砂。对话框通过 portal 渲染在应用外壳之外，插件会在其中恢复主题原本的背景与表面
+磨砂。对话框通过 portal 渲染在应用外壳之外，插件会在其中恢复主题原本的背景与面板
 变量，面板保持不透明，遮罩层仍保留自己的半透明填充。
 
 悬停预览卡片（例如悬停变更文件时弹出的 diff 卡片）也是 portal 到页面上、而不是渲染
-在外壳内，它会采用与菜单相同的更密填充，并应用 `surfaceBlur` 的背景模糊，因此在
+在外壳内，它会采用与菜单相同的更密填充，并应用 `panelBlur` 的背景模糊，因此在
 对话文字之上仍然清晰可读。
 
 修改配置后刷新页面（Ctrl+R）；若未生效，重启一次 DSH。同 id 的覆盖会替换整行
@@ -305,16 +300,20 @@ pnpm install github:Hexa5586/dsh-transparency-utils#v1.6.2   # 固定标签
 
 **1.6.2**
 
-- 斜杠菜单、「添加」菜单等共享菜单表面改为跟随 `surfaceOpacity` / `surfaceBlur`：
-  插件写入菜单材质层和 `--dsw-menu-surface-fill` 变量，填充比 `surfaceOpacity` 略密，
+- 斜杠菜单、「添加」菜单等共享菜单面板改为跟随 `panelOpacity` / `panelBlur`：
+  插件写入菜单材质层和 `--dsw-menu-surface-fill` 变量，填充比 `panelOpacity` 略密，
   因为菜单总是浮在文字之上。
 - 菜单在输入框卡片内部重新能模糊：此前背板模糊挂在输入框卡片本身，使它成为
   backdrop root，卡片内的菜单因此没有可模糊的页面背景；模糊改由卡片内部的一层承担。
 - 「本轮用量」浮层不再按模态对话框处理。它是非模态的 `role="dialog"`，现在跳过对话框
-  的主题变量恢复，单独使用一层玻璃表面（80% Canvas + 28px 饱和模糊）。
+  的主题变量恢复，单独使用一层玻璃面板（80% Canvas + 28px 饱和模糊）。
 - 悬停预览卡片（变更文件的 diff 卡片）改为磨砂：它 portal 到页面上、使用
   `--dsw-alias-bg-layer-1`，以前会把对话文字透出来；现在使用与菜单相同的更密填充，
-  并应用 `surfaceBlur`。
+  并应用 `panelBlur`。
 - 项目更名为 `dsh-transparency-utils`：bundle patch 插入的行 id 改为
   `transparency-utils`，路由改到 `/transparency-utils/`，插件页显示的名称改为
   「面板透明化工具」（英文为 Panel transparency utils）。
+- 配置项改名：`surfaceOpacity` / `surfaceBlur` 改为 `panelOpacity` / `panelBlur`，
+  中文标签里的「表面」改为「面板」。轨迹页不再有单独的 `trajectoryOpacity` /
+  `trajectoryBlur`，而是和其他面板一样沿用 `panelOpacity` / `panelBlur`，其卡片、
+  表格、工具栏、代码框和输入框也不再恢复成主题的不透明面板。

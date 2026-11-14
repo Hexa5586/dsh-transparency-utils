@@ -4,10 +4,9 @@
  * so the background appears in the Web GUI and in Desktop, whose window serves
  * its index without Host index injections.
  *
- * It also isolates the trajectory view (`[data-conversation-composer-overlay]`)
- * from the global surface opacity and blur: the theme's original surface tokens
- * are captured while the global sheet is temporarily disabled, then restored
- * inside the trajectory scope with the trajectory's own opacity and blur.
+ * It also restores the theme's own panel and structure tokens inside dialogs and
+ * the turn-usage popover. Both are portaled outside the shell, so they would
+ * otherwise inherit the transparent fills the global sheet sets on body.
  */
 
 window.__ModuleLoader__.load({
@@ -16,8 +15,7 @@ window.__ModuleLoader__.load({
     const React = require('react')
     const h = React.createElement
     const STYLE_URL = '/transparency-utils/style.css'
-    const TRAJECTORY_SCOPE = '[data-conversation-composer-overlay]'
-    const SURFACE_TOKENS = [
+    const PANEL_TOKENS = [
       '--dsw-specific-input-major',
       '--dsw-alias-markdown-code-block',
       '--dsw-alias-markdown-code-block-banner',
@@ -58,9 +56,8 @@ window.__ModuleLoader__.load({
     const PACKAGE_NAME = 'dsh-transparency-utils'
     const LOCALE_NS = 'transparencyUtils'
     const FIELD_ROWS = [
-      'image', 'background', 'opacity', 'surfaceOpacity', 'surfaceBlur',
-      'backgroundBlur', 'trajectoryOpacity', 'trajectoryBlur',
-      'composerFadeHeight',
+      'image', 'background', 'opacity', 'panelOpacity', 'panelBlur',
+      'backgroundBlur', 'composerFadeHeight',
     ]
     const MESSAGES = {
       en: {
@@ -76,11 +73,9 @@ window.__ModuleLoader__.load({
         'field.image': 'Wallpaper image path',
         'field.background': 'Wallpaper CSS background',
         'field.opacity': 'Wallpaper opacity',
-        'field.surfaceOpacity': 'Surface opacity',
-        'field.surfaceBlur': 'Surface blur (px)',
+        'field.panelOpacity': 'Panel opacity',
+        'field.panelBlur': 'Panel blur (px)',
         'field.backgroundBlur': 'Wallpaper blur (px)',
-        'field.trajectoryOpacity': 'Trajectory surface opacity',
-        'field.trajectoryBlur': 'Trajectory surface blur (px)',
         'field.composerFadeHeight': 'Composer veil height (px)',
         'field.image.hint': 'Absolute path to a local image file.',
         'field.background.hint': 'Any CSS background value; used when no image is set.',
@@ -98,11 +93,9 @@ window.__ModuleLoader__.load({
         'field.image': '壁纸图片路径',
         'field.background': '壁纸 CSS 背景',
         'field.opacity': '壁纸透明度',
-        'field.surfaceOpacity': '表面不透明度',
-        'field.surfaceBlur': '表面模糊（px）',
+        'field.panelOpacity': '面板不透明度',
+        'field.panelBlur': '面板模糊（px）',
         'field.backgroundBlur': '壁纸模糊（px）',
-        'field.trajectoryOpacity': '轨迹页表面不透明度',
-        'field.trajectoryBlur': '轨迹页表面模糊（px）',
         'field.composerFadeHeight': '输入框遮罩高度（px）',
         'field.image.hint': '本地图片的绝对路径。',
         'field.background.hint': '任意 CSS background 值；未设置图片时使用。',
@@ -113,9 +106,7 @@ window.__ModuleLoader__.load({
       image: 'field.image.hint',
       background: 'field.background.hint',
     }
-    const SCALE_FIELDS = new Set([
-      'opacity', 'surfaceOpacity', 'trajectoryOpacity',
-    ])
+    const SCALE_FIELDS = new Set(['opacity', 'panelOpacity'])
     const styles = {
       section: {
         margin: '20px 0 8px',
@@ -313,57 +304,30 @@ window.__ModuleLoader__.load({
         ctx.effect(() => {
           const base = document.createElement('style')
           base.dataset.plugin = 'dsh-transparency-utils'
-          const trajectory = document.createElement('style')
-          trajectory.dataset.plugin = 'dsh-transparency-utils/trajectory'
           const dialogs = document.createElement('style')
           dialogs.dataset.plugin = 'dsh-transparency-utils/dialogs'
-          document.head.append(base, trajectory, dialogs)
+          document.head.append(base, dialogs)
 
           const controller = new AbortController()
           let disposed = false
           let observer
           let frame = 0
 
-          const readNumber = (name, fallback) => {
-            const value = Number.parseFloat(
-              getComputedStyle(document.documentElement).getPropertyValue(name))
-            return Number.isFinite(value) ? value : fallback
-          }
-
           const rebuild = () => {
             frame = 0
             if (disposed) return
-            const opacity = Math.min(1, Math.max(0, readNumber('--wb-trajectory-opacity', 1)))
-            const blur = Math.min(80, Math.max(0, readNumber('--wb-trajectory-blur', 0)))
             // Read the theme's untouched tokens with the global sheet disabled.
             // These steps are synchronous, so no frame paints between them.
             base.disabled = true
-            const originals = SURFACE_TOKENS.map((token) =>
+            const originals = PANEL_TOKENS.map((token) =>
               getComputedStyle(document.body).getPropertyValue(token).trim())
             const structure = STRUCTURE_TOKENS.map((token) =>
               getComputedStyle(document.body).getPropertyValue(token).trim())
             base.disabled = false
-            const declarations = SURFACE_TOKENS.map((token, index) => {
-              const original = originals[index]
-              const value = original === ''
-                ? 'Canvas'
-                : opacity >= 1
-                  ? original
-                  : `color-mix(in srgb, ${original} ${Math.round(opacity * 1000) / 10}%, transparent)`
-              return `${token}:${value}!important;`
-            }).join('')
-            const blurValue = blur > 0 ? `blur(${Math.round(blur * 100) / 100}px)` : 'none'
-            trajectory.textContent = [
-              `${TRAJECTORY_SCOPE}{${declarations}}`,
-              `${TRAJECTORY_SCOPE} [data-composer-card],${TRAJECTORY_SCOPE} pre,${TRAJECTORY_SCOPE} [data-code-block-banner],${TRAJECTORY_SCOPE} input:not([type=checkbox]):not([type=radio]):not([type=range]),${TRAJECTORY_SCOPE} textarea,${TRAJECTORY_SCOPE} select{`,
-              `-webkit-backdrop-filter:${blurValue}!important;backdrop-filter:${blurValue}!important}`,
-              `${TRAJECTORY_SCOPE} input:not([type=checkbox]):not([type=radio]):not([type=range]),${TRAJECTORY_SCOPE} textarea,${TRAJECTORY_SCOPE} select{`,
-              `background-color:var(--dsw-specific-input-major)!important}`,
-            ].join('')
             const restored = [
               ...STRUCTURE_TOKENS.map((token, index) =>
                 `${token}:${structure[index] === '' ? 'Canvas' : structure[index]}!important;`),
-              ...SURFACE_TOKENS.map((token, index) =>
+              ...PANEL_TOKENS.map((token, index) =>
                 `${token}:${originals[index] === '' ? 'Canvas' : originals[index]}!important;`),
             ].join('')
             // The turn-usage popover is a non-modal role=dialog. Give it a
@@ -407,7 +371,6 @@ window.__ModuleLoader__.load({
             if (frame !== 0) cancelAnimationFrame(frame)
             observer?.disconnect()
             base.remove()
-            trajectory.remove()
             dialogs.remove()
           }
         }, 'window background stylesheet')
