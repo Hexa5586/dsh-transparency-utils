@@ -123,7 +123,12 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
 - `surfaceOpacity` / `surfaceBlur` apply to the composer/input fill, markdown
   code blocks (body and header), raised card layers, and plain `input` /
   `textarea` / `select` controls. Menus, popovers, and other overlays keep their
-  own surfaces for readability.
+  own surfaces for readability. Code-block banners and `pre` are matched
+  everywhere, so documentation pages such as a bundle's README in Plugin
+  Manager get the same frosted code blocks as the transcript.
+- Dialogs are portaled outside the application shell, so the plugin restores the
+  theme's own background and surface tokens inside them: their panels stay
+  opaque over the wallpaper, while a translucent scrim keeps its own paint.
 - The Trajectory view (`[data-conversation-composer-overlay]`) is isolated from
   the global surface settings. Its own `trajectoryOpacity` and `trajectoryBlur`
   apply there. When `trajectoryOpacity` is `1`, the plugin captures the live
@@ -220,6 +225,10 @@ pnpm install github:Hexa5586/dsh-background-utils#v1.5.2   # 固定标签
 - `trajectoryOpacity` / `trajectoryBlur`：仅轨迹页面使用的表面透明度/模糊，不受
   全局设置影响；`trajectoryOpacity: 1` 会恢复主题原本的不透明表面。
 - `composerFadeHeight`：输入框上方壁纸遮罩高度（像素），默认 36；0 关闭。
+
+代码框顶部栏和 `pre` 不限定在对话区内，因此插件 README 等文档页面的代码框同样会被
+磨砂。对话框通过 portal 渲染在应用外壳之外，插件会在其中恢复主题原本的背景与表面
+变量，面板保持不透明，遮罩层仍保留自己的半透明填充。
 
 修改配置后刷新页面（Ctrl+R）；若未生效，重启一次 DSH。同 id 的覆盖会替换整行
 配置，因此需要保留的字段都要写。
