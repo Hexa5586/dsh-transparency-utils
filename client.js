@@ -23,6 +23,26 @@ window.__ModuleLoader__.load({
       '--dsw-alias-bg-layer-2',
       '--dsw-alias-bg-layer-3',
     ]
+    // The window fills that the global sheet makes transparent. Dialogs are
+    // portaled outside the shell, so they inherit those transparent values and
+    // show the wallpaper through their panel.
+    const STRUCTURE_TOKENS = [
+      '--dsw-alias-bg-base',
+      '--dsw-specific-sidebar-fill',
+    ]
+    // Only variables are restored here, never `background-color`: a translucent
+    // scrim keeps its own paint, and the panel becomes opaque through the theme
+    // tokens it already reads.
+    const DIALOG_SCOPE = [
+      '[role="dialog"]',
+      '[role="alertdialog"]',
+      '[aria-modal="true"]',
+      'dialog',
+      '[data-dialog]',
+      '[data-modal]',
+      '[class*="dialog"]',
+      '[class*="Dialog"]',
+    ].join(',')
 
     return {
       apply(ctx) {
@@ -31,7 +51,9 @@ window.__ModuleLoader__.load({
           base.dataset.plugin = 'dsh-background-utils'
           const trajectory = document.createElement('style')
           trajectory.dataset.plugin = 'dsh-background-utils/trajectory'
-          document.head.append(base, trajectory)
+          const dialogs = document.createElement('style')
+          dialogs.dataset.plugin = 'dsh-background-utils/dialogs'
+          document.head.append(base, trajectory, dialogs)
 
           const controller = new AbortController()
           let disposed = false
@@ -54,6 +76,8 @@ window.__ModuleLoader__.load({
             base.disabled = true
             const originals = SURFACE_TOKENS.map((token) =>
               getComputedStyle(document.body).getPropertyValue(token).trim())
+            const structure = STRUCTURE_TOKENS.map((token) =>
+              getComputedStyle(document.body).getPropertyValue(token).trim())
             base.disabled = false
             const declarations = SURFACE_TOKENS.map((token, index) => {
               const original = originals[index]
@@ -72,6 +96,13 @@ window.__ModuleLoader__.load({
               `${TRAJECTORY_SCOPE} input:not([type=checkbox]):not([type=radio]):not([type=range]),${TRAJECTORY_SCOPE} textarea,${TRAJECTORY_SCOPE} select{`,
               `background-color:var(--dsw-specific-input-major)!important}`,
             ].join('')
+            const restored = [
+              ...STRUCTURE_TOKENS.map((token, index) =>
+                `${token}:${structure[index] === '' ? 'Canvas' : structure[index]}!important;`),
+              ...SURFACE_TOKENS.map((token, index) =>
+                `${token}:${originals[index] === '' ? 'Canvas' : originals[index]}!important;`),
+            ].join('')
+            dialogs.textContent = `${DIALOG_SCOPE}{${restored}}`
           }
 
           const schedule = () => {
@@ -104,6 +135,7 @@ window.__ModuleLoader__.load({
             observer?.disconnect()
             base.remove()
             trajectory.remove()
+            dialogs.remove()
           }
         }, 'window background stylesheet')
       },

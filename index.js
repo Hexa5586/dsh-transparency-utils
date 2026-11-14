@@ -127,10 +127,13 @@ function buildSurfaceStylesheet(opacity) {
 function buildSurfaceBlurStylesheet(radius) {
   if (radius <= 0) return ''
   const blur = `blur(${Math.round(radius * 100) / 100}px)`
+  // `pre` and the code-block banner are matched without a conversation
+  // ancestor so documentation surfaces, such as a bundle's README page in
+  // Plugin Manager, get the same frosted code blocks as the transcript.
   return [
     '[data-composer-card],',
-    '[data-conversation-content] pre,',
-    '[data-conversation-content] [data-code-block-banner],',
+    '[data-code-block-banner],',
+    'pre,',
     'input:not([type=checkbox]):not([type=radio]):not([type=range]),',
     'textarea,select{',
     `-webkit-backdrop-filter:${blur};backdrop-filter:${blur}`,

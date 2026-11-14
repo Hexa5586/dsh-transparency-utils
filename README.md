@@ -31,7 +31,7 @@ installs straight from the repository.
 ```sh
 pnpm install github:Hexa5586/dsh-background-utils
 # pin a release tag instead of the default branch
-pnpm install github:Hexa5586/dsh-background-utils#v1.5.1
+pnpm install github:Hexa5586/dsh-background-utils#v1.5.2
 ```
 
 These URL forms are equivalent:
@@ -175,7 +175,7 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 Hexa5586.
 
 ```sh
 pnpm install github:Hexa5586/dsh-background-utils
-pnpm install github:Hexa5586/dsh-background-utils#v1.5.1   # 固定标签
+pnpm install github:Hexa5586/dsh-background-utils#v1.5.2   # 固定标签
 ```
 
 在 DSH 中，打开 **设置 → 插件 → 添加插件**，粘贴同一个 Git 地址并启用
