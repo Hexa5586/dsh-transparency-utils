@@ -62,11 +62,34 @@ const MEDIA_TYPES = new Map([
 ])
 
 /**
+ * Detect a supported image type from the file's own bytes, so a file whose
+ * extension and contents disagree is still served with the type it really is.
+ * @param bytes - File contents read from the configured path.
+ * @param fallback - Media type named by the file extension.
+ * @returns The detected media type, or the fallback.
+ */
+function detectMediaType(bytes, fallback) {
+  if (bytes.length < 12) return fallback
+  const ascii = (start, end) => Buffer.from(bytes.subarray(start, end)).toString('latin1')
+  if (bytes[0] === 0x89 && ascii(1, 4) === 'PNG') return 'image/png'
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg'
+  if (ascii(0, 3) === 'GIF') return 'image/gif'
+  if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'image/webp'
+  if (ascii(4, 8) === 'ftyp' && (ascii(8, 12) === 'avif' || ascii(8, 12) === 'avis')) return 'image/avif'
+  const head = ascii(0, Math.min(bytes.length, 512)).trimStart().toLowerCase()
+  if (head.startsWith('<svg') || head.startsWith('<?xml') && head.includes('<svg')) {
+    return 'image/svg+xml'
+  }
+  return fallback
+}
+
+/**
  * Coerce a configuration value to an opacity in [0, 1].
  * @param value - Raw configured opacity.
  * @returns The clamped opacity, or the default for a non-numeric value.
  */
-function normalizeOpacity(value) {  const parsed = typeof value === 'number' ? value : Number.parseFloat(value)
+function normalizeOpacity(value) {
+  const parsed = typeof value === 'number' ? value : Number.parseFloat(value)
   if (!Number.isFinite(parsed)) return DEFAULT_OPACITY
   return Math.min(1, Math.max(0, parsed))
 }
@@ -395,7 +418,10 @@ export function apply(ctx, config) {
       try {
         const bytes = await readFile(image.imagePath)
         return new Response(bytes, {
-          headers: { 'content-type': image.mediaType, 'cache-control': 'no-store' },
+          headers: {
+            'content-type': detectMediaType(bytes, image.mediaType),
+            'cache-control': 'no-store',
+          },
         })
       } catch {
         return new Response('The configured window background image is unavailable.', {

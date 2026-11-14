@@ -31,7 +31,7 @@ installs straight from the repository.
 ```sh
 pnpm install github:Hexa5586/dsh-background-utils
 # pin a release tag instead of the default branch
-pnpm install github:Hexa5586/dsh-background-utils#v1.6.0
+pnpm install github:Hexa5586/dsh-background-utils#v1.6.1
 ```
 
 These URL forms are equivalent:
@@ -116,7 +116,7 @@ editing and no extra configuration.
 
 | Field | Meaning |
 |---|---|
-| `image` | Absolute path to a local image (`png`, `jpg`, `jpeg`, `webp`, `gif`, `avif`, `svg`). The plugin serves it at `/background-utils/image`, so no `file://` URL is needed. |
+| `image` | Absolute path to a local image (`png`, `jpg`, `jpeg`, `webp`, `gif`, `avif`, `svg`). The plugin serves it at `/background-utils/image` with the type its bytes declare, so a JPEG saved with a `.png` name still renders correctly. No `file://` URL is needed. |
 | `background` | CSS `background` value: a color, a gradient, or a remote `url("...")`. Used when `image` is absent, missing, or has an unsupported extension. |
 | `opacity` | Wallpaper layer opacity from `0` to `1`; defaults to `1`. `0` leaves the window unchanged. |
 | `surfaceOpacity` | How opaque text boxes, code boxes, and raised cards stay over the wallpaper, from `0` (fully transparent) to `1` (unchanged). Defaults to `1`. |
@@ -198,7 +198,7 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 Hexa5586.
 
 ```sh
 pnpm install github:Hexa5586/dsh-background-utils
-pnpm install github:Hexa5586/dsh-background-utils#v1.6.0   # 固定标签
+pnpm install github:Hexa5586/dsh-background-utils#v1.6.1   # 固定标签
 ```
 
 在 DSH 中，打开 **设置 → 插件 → 添加插件**，粘贴同一个 Git 地址并启用
@@ -239,8 +239,9 @@ pnpm install github:Hexa5586/dsh-background-utils#v1.6.0   # 固定标签
 
 字段说明：
 
-- `image`：本地图片绝对路径；由插件通过 `/background-utils/image` 提供，不需要
-  `file://`。
+- `image`：本地图片绝对路径，支持 `png`、`jpg`、`jpeg`、`webp`、`gif`、`avif`、`svg`；
+  由插件通过 `/background-utils/image` 提供，返回的 MIME 类型按文件实际内容判定，所以
+  内容是 JPEG 但后缀写成 `.png` 的文件也能正常显示；不需要 `file://`。
 - `background`：任意 CSS background 值（颜色、渐变或远程 `url("...")`），在没有
   可用 `image` 时使用。
 - `opacity`：壁纸透明度，0 到 1。
