@@ -1,8 +1,8 @@
 {
   "name": "dsh-transparency-utils",
   "version": "1.6.2",
-  "private": true,
-  "description": "DeepSeek Harness panel transparency utilities: full-window wallpaper, translucent and blurred surfaces, and a composer wallpaper veil.",
+  "private": false,
+  "description": "A vibe-coding plugin for DeepSeek Harness to customize panel transparency and window background",
   "license": "MIT",
   "author": "Hexa5586",
   "repository": {
@@ -19,7 +19,8 @@
     "plugin",
     "bundle",
     "background",
-    "wallpaper"
+    "wallpaper",
+    "dsh-plugin"
   ],
   "engines": {
     "node": ">=20"
