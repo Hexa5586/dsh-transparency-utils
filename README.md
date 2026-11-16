@@ -143,6 +143,10 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
   the page instead of into the shell, so the shared card layer stays
   translucent. They take the same denser fill as menus plus the `panelBlur`
   backdrop, which keeps the diff readable over the transcript.
+- The model and effort picker panel is portaled onto the page as well and paints
+  a glass token of its own, so the plugin writes the panel fill and blur onto
+  its panel element directly. It opens over the composer like a menu, so it
+  takes the menu's denser fill.
 - Dialogs are portaled outside the application shell, so the plugin restores the
   theme's own background and panel tokens inside them: their panels stay
   opaque over the wallpaper, while a translucent scrim keeps its own paint.
@@ -199,6 +203,9 @@ not appear, restart DSH once. Replacing the `image` file only needs a reload.
   `trajectoryBlur`; it follows `panelOpacity` / `panelBlur` like every other
   panel, so its card, table, toolbar, code blocks, and inputs are no longer
   restored to the theme's opaque surfaces.
+- The model and effort picker panel now follows `panelOpacity` / `panelBlur`. It
+  painted its own glass token and read the shared menu blur token, which the
+  plugin pins to `none`, so it neither matched the panel fill nor blurred.
 
 ### 1.6.1
 
@@ -293,6 +300,10 @@ pnpm install github:Hexa5586/dsh-transparency-utils#v1.6.2   # 固定标签
 在外壳内，它会采用与菜单相同的更密填充，并应用 `panelBlur` 的背景模糊，因此在
 对话文字之上仍然清晰可读。
 
+模型与思考强度选择面板（`data-ces-part="picker-panel"`）同样 portal 到页面上，并且
+使用它自己的玻璃变量；插件会把面板填充与 `panelBlur` 直接写到这个面板元素上，所以
+它和菜单一样跟随面板设置。
+
 修改配置后刷新页面（Ctrl+R）；若未生效，重启一次 DSH。同 id 的覆盖会替换整行
 配置，因此需要保留的字段都要写。
 
@@ -317,3 +328,6 @@ pnpm install github:Hexa5586/dsh-transparency-utils#v1.6.2   # 固定标签
   中文标签里的「表面」改为「面板」。轨迹页不再有单独的 `trajectoryOpacity` /
   `trajectoryBlur`，而是和其他面板一样沿用 `panelOpacity` / `panelBlur`，其卡片、
   表格、工具栏、代码框和输入框也不再恢复成主题的不透明面板。
+- 模型与思考强度选择面板现在跟随 `panelOpacity` / `panelBlur`：它原本使用自己的
+  玻璃变量，并且读取那个被插件置为 `none` 的共享菜单模糊变量，所以既没有面板填充
+  也没有模糊。

@@ -54,6 +54,14 @@ const HOVER_PREVIEW_CARD = [
   ':has(> [data-changes-hover-preview])',
 ].join(',')
 
+/**
+ * The model and effort picker panel. Its component marks the panel with
+ * `data-ces-part="picker-panel"` and paints a glass token of its own, so it
+ * needs the panel settings written onto the panel element itself. The attribute
+ * is part of the component's public DOM contract, so it survives version bumps.
+ */
+const PICKER_PANEL = '[data-ces-part="picker-panel"]'
+
 /** Wait for the HTTP carrier before registering the routes. */
 export const inject = ['webServer']
 
@@ -174,6 +182,11 @@ function buildPanelStylesheet(opacity) {
     // they take the menu's denser fill; without it the text behind the diff
     // stays readable through the card.
     `${HOVER_PREVIEW_CARD}{background-color:${menuColor}!important}`,
+    // The model and effort picker (a third-party panel) paints its own glass
+    // token, `--cxp-glass`, instead of the shared panel tokens, so the fill has
+    // to reach its panel element directly. It opens over the composer like a
+    // menu, so it takes the menu fill.
+    `${PICKER_PANEL}{background-color:${menuColor}!important}`,
   ].join('')
 }
 
@@ -212,6 +225,10 @@ function buildPanelBlurStylesheet(radius) {
     // transcript it covers: the frosted fill only reads as glass once the text
     // behind it is blurred.
     `${HOVER_PREVIEW_CARD}{-webkit-backdrop-filter:${blur}!important;backdrop-filter:${blur}!important}`,
+    // The picker panel reads the shared menu blur token, which the base sheet
+    // pins to `none` to keep the menu surface from doubling its blur, so its
+    // own blur needs an explicit value.
+    `${PICKER_PANEL}{-webkit-backdrop-filter:${blur}!important;backdrop-filter:${blur}!important}`,
   ].join('')
 }
 
